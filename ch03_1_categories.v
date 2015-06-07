@@ -7,10 +7,10 @@ Reserved Notation "G <<< F" (at level 45).
 (* =============== Categories =============== *)
 
 (* Definition 3.1 *)
-Class Category (O: Type) :=
+Class Category :=
   {
     (* The quadruple *)
-    Ob    := O;
+    Ob    :  Type;
     hom   :  Ob -> Ob -> Type
              where "a ~> b" := (hom a b);
     id    :  `(hom a a);
@@ -24,8 +24,7 @@ Class Category (O: Type) :=
     id_r  :  forall `(f: a~>b), id b << f = f
   }.
 
-Implicit Arguments hom [ O ].
-Notation "a ~> b"        := (@hom _ _ a b)  :category_scope.
+Notation "a ~> b"        := (@hom _ a b)  :category_scope.
 Notation "g << f"        := (comp _ _ _ f g)  :category_scope.
 
 Open Scope category_scope.
@@ -61,26 +60,28 @@ Definition cod `(C: Category) (a b: Ob) (_ : a ~> b)
 
 (* Example 3.3 *)
 
-Example cSet : Category Type.
+Instance catSet : Category :=
+  {
+    Ob   := Type;
+    hom  := fun a b => a -> b;
+    id   := fun a x => x;
+    comp := fun a b c (f: a -> b) (g: b -> c) x => g (f x)
+  }.
 Proof.
-  apply Build_Category
-  with (hom :=
-          fun a b => a -> b)
-       (id :=
-          fun a x => x)
-       (comp :=
-          fun a b c (f: a -> b) (g: b -> c) x => g (f x));
-  try reflexivity.
-Qed.
+  trivial.
+  trivial.
+  trivial.
+Defined.
 
 (* =============== The Duality Principle =============== *)
 
 (* Definition 3.5 *)
 Definition dual `(C: Category) :
-  Category Ob.
+  Category.
 Proof.
-  apply (Build_Category Ob)
-  with (hom := (fun a b => b ~> a))
+  apply (Build_Category)
+  with (Ob := Ob)
+       (hom := (fun a b => b ~> a))
        (id := id)
        (comp := fun a b c f g => comp c b a g f).
   - symmetry; apply assoc.
@@ -114,7 +115,7 @@ Theorem morph_equal :
   forall `(_: Category) `(f: a ~> b) (g h: b ~> a),
     g << f = id a -> f << h = id b -> g = h.
 Proof.
-  intros O C a b f g h Hfg Hhf.
+  intros C a b f g h Hfg Hhf.
   rewrite <- id_r.
   rewrite <- Hfg.
   rewrite <- assoc.
@@ -128,7 +129,7 @@ Theorem inv_unique :
   forall `(_: Category) `(f: a ~> b) g h,
     Inversion f g -> Inversion f h -> g = h.
 Proof.
-  intros O C a b f g h Hgf Hhf.
+  intros C a b f g h Hgf Hhf.
   apply (morph_equal _ f).
   - destruct Hgf; assumption.
   - destruct Hhf; assumption.
@@ -140,7 +141,7 @@ Lemma inv_symm :
   forall `(_: Category) `(f: a ~> b) g,
     Inversion f g -> Inversion g f.
 Proof.
-  intros O C a b f g Hfg.
+  intros C a b f g Hfg.
   apply Build_Inversion; destruct Hfg; assumption.
 Qed.
 
@@ -148,7 +149,7 @@ Theorem iso_inv :
   forall `(_: Category) `(f: a ~> b) g,
     Isomorphism f -> Inversion f g -> Isomorphism g.
 Proof.
-  intros O C a b f g Hf Hfg.
+  intros C a b f g Hf Hfg.
   apply Build_Isomorphism.
   exists f.
   apply inv_symm; assumption.
@@ -158,7 +159,7 @@ Theorem double_inv :
   forall `(_: Category) `(f: a ~> b) g h,
     Inversion f g -> Inversion g h -> f = h.
 Proof.
-  intros O C a b f g h Hfg Hgh.
+  intros C a b f g h Hfg Hgh.
   apply (morph_equal _ g).
   - destruct Hfg; assumption.
   - destruct Hgh; assumption.
@@ -170,7 +171,7 @@ Theorem inv_comp :
     Inversion g g' ->
     Inversion (g << f) (f' << g').
 Proof.
-  intros O C a b f c g f' g' Hf Hg.
+  intros C a b f c g f' g' Hf Hg.
   destruct Hf; destruct Hg.
   apply Build_Inversion.
   - rewrite -> juggle3; rewrite -> inv_comp5.
@@ -183,7 +184,7 @@ Theorem iso_comp :
   forall `(_: Category) `(f: a ~> b) `(g: b ~> c),
     Isomorphism f -> Isomorphism g -> Isomorphism (g << f).
 Proof.
-  intros O C a b f c g Hf Hg.
+  intros C a b f c g Hf Hg.
   apply Build_Isomorphism.
   destruct Hf as [comp_f]; destruct Hg as [comp_g].
   destruct comp_f; destruct comp_g.
