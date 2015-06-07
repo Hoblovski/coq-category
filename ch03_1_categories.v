@@ -59,6 +59,20 @@ Definition dom `(C: Category) (a b: Ob) (_ : a ~> b)
 Definition cod `(C: Category) (a b: Ob) (_ : a ~> b)
   := b.
 
+(* Example 3.3 *)
+
+Example cSet : Category Type.
+Proof.
+  apply Build_Category
+  with (hom :=
+          fun a b => a -> b)
+       (id :=
+          fun a x => x)
+       (comp :=
+          fun a b c (f: a -> b) (g: b -> c) x => g (f x));
+  try reflexivity.
+Qed.
+
 (* =============== The Duality Principle =============== *)
 
 (* Definition 3.5 *)
