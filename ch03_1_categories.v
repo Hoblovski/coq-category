@@ -4,9 +4,9 @@ Reserved Notation "a ~> b" (at level 70, right associativity).
 Reserved Notation "g << f" (at level 45).
 Reserved Notation "G <<< F" (at level 45).
 
-(* =============== Categories =============== *)
+(*** =============== Categories =============== ***)
 
-(* Definition 3.1 *)
+(****************** Definition 3.1 ******************)
 Class Category :=
   {
     (* The quadruple *)
@@ -50,16 +50,14 @@ Proof.
   intros; repeat rewrite -> assoc; reflexivity.
 Qed.
 
-(* Remark 3.2 *)
-
+(****************** Remark 3.2 ******************)
 Definition dom `(C: Category) (a b: Ob) (_ : a ~> b)
   := a.
 
 Definition cod `(C: Category) (a b: Ob) (_ : a ~> b)
   := b.
 
-(* Example 3.3 *)
-
+(****************** Example 3.3 ******************)
 Instance catSet : Category :=
   {
     Ob   := Type;
@@ -73,11 +71,16 @@ Proof.
   trivial.
 Defined.
 
-(* =============== The Duality Principle =============== *)
+Inductive EmptyMor : Type := .
+Class IdentityMor (A: Type) : Type :=
+  {
+    im_f := fun x: A => x
+  }.
 
-(* Definition 3.5 *)
-Definition dual `(C: Category) :
-  Category.
+(*** =============== The Duality Principle =============== ***)
+
+(****************** Definition 3.5 ******************)
+Definition dual `(C: Category) : Category.
 Proof.
   apply (Build_Category)
   with (Ob := Ob)
@@ -89,16 +92,16 @@ Proof.
   - intros; apply id_l.
 Defined.
 
-(* Remark 3.7 *)
+(****************** Remark 3.7 ******************)
 Lemma double_dual : forall `(C: Category), (dual (dual C)) = C.
 Proof.
   Admitted.
 
 (* TODO: How can we formalize the duality principle? *)
 
-(* =============== Isomorphism =============== *)
+(*** =============== Isomorphism =============== ***)
 
-(* Definition 3.8 *)
+(****************** Definition 3.8 ******************)
 Class Inversion `{C: Category} `(f: a~>b) g : Prop :=
   {
     inv_comp1 : g << f = id a;
@@ -110,7 +113,7 @@ Class Isomorphism `{C: Category} `(f: a ~> b) : Prop :=
     iso_comp1: exists g, Inversion f g
   }.
 
-(* Proposition 3.10 *)
+(****************** Proposition 3.10 ******************)
 Theorem morph_equal :
   forall `(_: Category) `(f: a ~> b) (g h: b ~> a),
     g << f = id a -> f << h = id b -> g = h.
@@ -124,7 +127,7 @@ Proof.
   reflexivity.
 Qed.
 
-(* Corollary 3.11 *)
+(****************** Corollary 3.11 ******************)
 Theorem inv_unique :
   forall `(_: Category) `(f: a ~> b) g h,
     Inversion f g -> Inversion f h -> g = h.
@@ -135,14 +138,23 @@ Proof.
   - destruct Hhf; assumption.
 Qed.
 
-(* Proposition 3.14 *)
-
+(****************** Proposition 3.14 ******************)
 Lemma inv_symm :
   forall `(_: Category) `(f: a ~> b) g,
     Inversion f g -> Inversion g f.
 Proof.
   intros C a b f g Hfg.
   apply Build_Inversion; destruct Hfg; assumption.
+Qed.
+
+Lemma double_inv :
+  forall `(_: Category) `(f: a ~> b) g h,
+    Inversion f g -> Inversion g h -> f = h.
+Proof.
+  intros C a b f g h Hfg Hgh.
+  apply (morph_equal _ g).
+  - destruct Hfg; assumption.
+  - destruct Hgh; assumption.
 Qed.
 
 Theorem iso_inv :
@@ -153,16 +165,6 @@ Proof.
   apply Build_Isomorphism.
   exists f.
   apply inv_symm; assumption.
-Qed.
-
-Theorem double_inv :
-  forall `(_: Category) `(f: a ~> b) g h,
-    Inversion f g -> Inversion g h -> f = h.
-Proof.
-  intros C a b f g h Hfg Hgh.
-  apply (morph_equal _ g).
-  - destruct Hfg; assumption.
-  - destruct Hgh; assumption.
 Qed.
 
 Theorem inv_comp :
@@ -192,7 +194,7 @@ Proof.
   apply inv_comp; assumption.
 Qed.
 
-(* Definition 3.15 *)
+(****************** Definition 3.15 ******************)
 Class Isomorphic `{c: Category} (a b: Ob) : Prop :=
   {
     iso_ex : exists f: a ~> b, Isomorphism f
